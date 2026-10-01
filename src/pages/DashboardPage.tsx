@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 import IndicatorsPCM from '@/components/pcm/IndicatorsPCM'
 import OSManager from '@/components/pcm/OSManager'
 import EquipamentosManager from '@/components/pcm/EquipamentosManager'
+import AssetImportPreview from '@/components/pcm/AssetImportPreview'
 import EquipesManager from '@/components/pcm/EquipesManager'
 import UsersManager from '@/components/pcm/UsersManager'
 import { useAuth } from '@/contexts/AuthContext'
@@ -118,7 +119,14 @@ export default function DashboardPage() {
       )}
 
       {activeTab === 'equipamentos' && (
-        <EquipamentosManager equipamentos={equipamentos} onRefresh={fetchData} />
+        <>
+          {isAdmin && (
+            <div className="mb-5">
+              <AssetImportPreview />
+            </div>
+          )}
+          <EquipamentosManager equipamentos={equipamentos} onRefresh={fetchData} />
+        </>
       )}
 
       {activeTab === 'equipes' && <EquipesManager equipes={equipes} onRefresh={fetchData} />}
