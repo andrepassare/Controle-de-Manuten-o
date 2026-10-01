@@ -25,15 +25,22 @@ export type EquipamentoCriticidade = 'A' | 'B' | 'C'
 
 export interface Equipamento {
   id: string
-  nome: string
+  nome?: string
   tag: string
-  setor: string
-  tipo: EquipamentoTipo
-  status: EquipamentoStatus
+  setor?: string
+  tipo?: EquipamentoTipo
+  status?: EquipamentoStatus
   criticidade?: EquipamentoCriticidade
   fabricante?: string
   modelo?: string
   observacoes?: string
+  descricao?: string
+  codigo_equipamento?: string
+  codigo_mis?: string
+  familia_codigo?: string
+  familia_descricao?: string
+  sensores?: boolean
+  responsavel?: string
   created: string
   updated: string
 }

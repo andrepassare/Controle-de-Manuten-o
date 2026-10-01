@@ -75,15 +75,26 @@ export default function IndicatorsPCM({
     // Por Equipamento
     const equipCount: Record<
       string,
-      { nome: string; tag: string; total: number; abertas: number }
+      {
+        nome: string
+        tag: string
+        descricao?: string
+        criticidade?: string
+        sensores?: boolean
+        total: number
+        abertas: number
+      }
     > = {}
     ordens.forEach((o) => {
       const eqId = o.equipamento_id || 'sem_eq'
       const eq = equipamentos.find((e) => e.id === eqId) || o.expand?.equipamento_id
       const tag = eq ? eq.tag : 'Sem Tag'
-      const nome = eq ? eq.nome : 'Equipamento Geral'
+      const descricao = eq?.descricao || ''
+      const nome = eq ? eq.descricao || eq.nome || eq.tag : 'Equipamento Geral'
+      const criticidade = eq?.criticidade || 'C'
+      const sensores = Boolean(eq?.sensores)
       if (!equipCount[eqId]) {
-        equipCount[eqId] = { nome, tag, total: 0, abertas: 0 }
+        equipCount[eqId] = { nome, tag, descricao, criticidade, sensores, total: 0, abertas: 0 }
       }
       equipCount[eqId].total++
       if (o.status === 'aberta' || o.status === 'em_andamento') {
@@ -470,7 +481,7 @@ export default function IndicatorsPCM({
           <div className="mt-4 divide-y divide-gray-100">
             {Object.values(stats.equipCount).length === 0 ? (
               <p className="text-xs text-gray-400 py-3 text-center">
-                Nenhum equipamento vinculado a ordens.
+                Nenhum equipamento vinculado a ordens ativas ou concluídas.
               </p>
             ) : (
               Object.values(stats.equipCount)
@@ -479,10 +490,32 @@ export default function IndicatorsPCM({
                 .map((eq, idx) => (
                   <div key={idx} className="py-2.5 flex items-center justify-between text-xs">
                     <div>
-                      <span className="font-semibold text-[#1B263B] block leading-tight">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono font-bold text-[#1E3A5F] text-[11px]">
+                          {eq.tag}
+                        </span>
+                        {eq.criticidade && (
+                          <span
+                            className={`px-1 py-0.2 rounded text-[8px] font-bold ${
+                              eq.criticidade === 'A'
+                                ? 'bg-red-100 text-red-700'
+                                : eq.criticidade === 'B'
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : 'bg-blue-100 text-blue-700'
+                            }`}
+                          >
+                            Crit. {eq.criticidade}
+                          </span>
+                        )}
+                        {eq.sensores && (
+                          <span className="px-1 py-0.2 rounded text-[8px] font-bold bg-emerald-100 text-emerald-800">
+                            Sensores
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-semibold text-gray-900 block leading-tight mt-0.5">
                         {eq.nome}
                       </span>
-                      <span className="text-[11px] text-gray-500 font-mono">TAG: {eq.tag}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {eq.abertas > 0 ? (

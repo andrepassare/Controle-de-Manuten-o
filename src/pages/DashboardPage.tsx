@@ -13,6 +13,7 @@ import { ordensServicoService } from '@/services/ordensServico'
 import { equipamentosService } from '@/services/equipamentos'
 import { equipesService } from '@/services/equipes'
 import { OrdemServico, Equipamento, Equipe } from '@/types/pcm'
+import ImportEquipamentosModal from '@/components/pcm/ImportEquipamentosModal'
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: isAuthLoading, isAdmin } = useAuth()
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const [equipamentos, setEquipamentos] = useState<Equipamento[]>([])
   const [equipes, setEquipes] = useState<Equipe[]>([])
   const [loadingData, setLoadingData] = useState(true)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -125,7 +127,20 @@ export default function DashboardPage() {
               <AssetImportPreview />
             </div>
           )}
-          <EquipamentosManager equipamentos={equipamentos} onRefresh={fetchData} />
+          <EquipamentosManager
+            equipamentos={equipamentos}
+            onRefresh={fetchData}
+            onOpenImport={isAdmin ? () => setIsImportModalOpen(true) : undefined}
+          />
+
+          {isAdmin && (
+            <ImportEquipamentosModal
+              isOpen={isImportModalOpen}
+              onClose={() => setIsImportModalOpen(false)}
+              equipamentosExistentes={equipamentos}
+              onSuccess={fetchData}
+            />
+          )}
         </>
       )}
 

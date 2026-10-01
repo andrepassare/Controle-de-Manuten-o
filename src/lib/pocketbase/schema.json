@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T14:18:16.697Z",
+  "generatedAt": "2026-10-01T19:48:31.842Z",
   "collections": [
     {
       "name": "users",
@@ -71,7 +71,7 @@
         {
           "name": "nome",
           "type": "text",
-          "required": true,
+          "required": false,
           "system": false
         },
         {
@@ -83,13 +83,13 @@
         {
           "name": "setor",
           "type": "text",
-          "required": true,
+          "required": false,
           "system": false
         },
         {
           "name": "tipo",
           "type": "select",
-          "required": true,
+          "required": false,
           "system": false,
           "selectValues": [
             "Mecânico",
@@ -104,7 +104,7 @@
         {
           "name": "status",
           "type": "select",
-          "required": true,
+          "required": false,
           "system": false,
           "selectValues": ["Operacional", "Em Manutenção", "Alerta", "Parado"]
         },
@@ -146,12 +146,57 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "descricao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "codigo_equipamento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "codigo_mis",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "familia_codigo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "familia_descricao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "sensores",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "responsavel",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
         "CREATE INDEX idx_equip_tag ON equipamentos (tag)",
         "CREATE INDEX idx_equip_setor ON equipamentos (setor)",
-        "CREATE INDEX idx_equip_status ON equipamentos (status)"
+        "CREATE INDEX idx_equip_status ON equipamentos (status)",
+        "CREATE INDEX `idx_equip_codigo_equipamento` ON `equipamentos` (codigo_equipamento)",
+        "CREATE INDEX `idx_equip_familia_codigo` ON `equipamentos` (familia_codigo)",
+        "CREATE INDEX `idx_equip_responsavel` ON `equipamentos` (responsavel)"
       ]
     },
     {

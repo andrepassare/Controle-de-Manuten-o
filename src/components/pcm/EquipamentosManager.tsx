@@ -24,12 +24,19 @@ import { equipamentosService } from '@/services/equipamentos'
 interface EquipamentosManagerProps {
   equipamentos: Equipamento[]
   onRefresh: () => void
+  onOpenImport?: () => void
 }
 
-export default function EquipamentosManager({ equipamentos, onRefresh }: EquipamentosManagerProps) {
+export default function EquipamentosManager({
+  equipamentos,
+  onRefresh,
+  onOpenImport,
+}: EquipamentosManagerProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('todos')
   const [tipoFilter, setTipoFilter] = useState('todos')
+  const [criticidadeFilter, setCriticidadeFilter] = useState('todos')
+  const [sensoresFilter, setSensoresFilter] = useState('todos')
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -38,10 +45,17 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
   // Form Fields
   const [formNome, setFormNome] = useState('')
   const [formTag, setFormTag] = useState('')
+  const [formDescricao, setFormDescricao] = useState('')
+  const [formCodigoEquip, setFormCodigoEquip] = useState('')
+  const [formCodigoMis, setFormCodigoMis] = useState('')
+  const [formFamiliaCodigo, setFormFamiliaCodigo] = useState('')
+  const [formFamiliaDescricao, setFormFamiliaDescricao] = useState('')
+  const [formSensores, setFormSensores] = useState(false)
+  const [formResponsavel, setFormResponsavel] = useState('')
   const [formSetor, setFormSetor] = useState('')
   const [formTipo, setFormTipo] = useState<EquipamentoTipo>('Mecânico')
   const [formStatus, setFormStatus] = useState<EquipamentoStatus>('Operacional')
-  const [formCriticidade, setFormCriticidade] = useState<EquipamentoCriticidade>('A')
+  const [formCriticidade, setFormCriticidade] = useState<EquipamentoCriticidade>('C')
   const [formFabricante, setFormFabricante] = useState('')
   const [formModelo, setFormModelo] = useState('')
   const [formObservacoes, setFormObservacoes] = useState('')
@@ -53,27 +67,43 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
     return equipamentos.filter((eq) => {
       const search = searchTerm.toLowerCase()
       const matchesSearch =
-        eq.nome.toLowerCase().includes(search) ||
-        eq.tag.toLowerCase().includes(search) ||
-        eq.setor.toLowerCase().includes(search) ||
+        (eq.nome || '').toLowerCase().includes(search) ||
+        (eq.tag || '').toLowerCase().includes(search) ||
+        (eq.descricao || '').toLowerCase().includes(search) ||
+        (eq.codigo_equipamento || '').toLowerCase().includes(search) ||
+        (eq.codigo_mis || '').toLowerCase().includes(search) ||
+        (eq.familia_codigo || '').toLowerCase().includes(search) ||
+        (eq.familia_descricao || '').toLowerCase().includes(search) ||
+        (eq.responsavel || '').toLowerCase().includes(search) ||
+        (eq.setor || '').toLowerCase().includes(search) ||
         (eq.fabricante || '').toLowerCase().includes(search)
 
       if (!matchesSearch) return false
       if (statusFilter !== 'todos' && eq.status !== statusFilter) return false
       if (tipoFilter !== 'todos' && eq.tipo !== tipoFilter) return false
+      if (criticidadeFilter !== 'todos' && eq.criticidade !== criticidadeFilter) return false
+      if (sensoresFilter === 'sim' && !eq.sensores) return false
+      if (sensoresFilter === 'nao' && eq.sensores) return false
 
       return true
     })
-  }, [equipamentos, searchTerm, statusFilter, tipoFilter])
+  }, [equipamentos, searchTerm, statusFilter, tipoFilter, criticidadeFilter, sensoresFilter])
 
   const handleOpenCreate = () => {
     setEditingEquip(null)
     setFormNome('')
     setFormTag('')
+    setFormDescricao('')
+    setFormCodigoEquip('')
+    setFormCodigoMis('')
+    setFormFamiliaCodigo('')
+    setFormFamiliaDescricao('')
+    setFormSensores(false)
+    setFormResponsavel('')
     setFormSetor('')
     setFormTipo('Mecânico')
     setFormStatus('Operacional')
-    setFormCriticidade('A')
+    setFormCriticidade('C')
     setFormFabricante('')
     setFormModelo('')
     setFormObservacoes('')
@@ -83,12 +113,19 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
 
   const handleOpenEdit = (eq: Equipamento) => {
     setEditingEquip(eq)
-    setFormNome(eq.nome)
-    setFormTag(eq.tag)
-    setFormSetor(eq.setor)
-    setFormTipo(eq.tipo)
-    setFormStatus(eq.status)
-    setFormCriticidade(eq.criticidade || 'A')
+    setFormNome(eq.nome || '')
+    setFormTag(eq.tag || '')
+    setFormDescricao(eq.descricao || '')
+    setFormCodigoEquip(eq.codigo_equipamento || '')
+    setFormCodigoMis(eq.codigo_mis || '')
+    setFormFamiliaCodigo(eq.familia_codigo || '')
+    setFormFamiliaDescricao(eq.familia_descricao || '')
+    setFormSensores(Boolean(eq.sensores))
+    setFormResponsavel(eq.responsavel || '')
+    setFormSetor(eq.setor || '')
+    setFormTipo(eq.tipo || 'Mecânico')
+    setFormStatus(eq.status || 'Operacional')
+    setFormCriticidade(eq.criticidade || 'C')
     setFormFabricante(eq.fabricante || '')
     setFormModelo(eq.modelo || '')
     setFormObservacoes(eq.observacoes || '')
@@ -100,17 +137,24 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
     e.preventDefault()
     setFormError(null)
 
-    if (!formNome.trim() || !formTag.trim() || !formSetor.trim()) {
-      setFormError('Nome, TAG e Setor são campos obrigatórios.')
+    if (!formTag.trim()) {
+      setFormError('A TAG do equipamento é obrigatória.')
       return
     }
 
     setSaving(true)
     try {
       const payload: Partial<Equipamento> = {
-        nome: formNome.trim(),
-        tag: formTag.trim().toUpperCase(),
-        setor: formSetor.trim(),
+        tag: formTag.trim(),
+        nome: formNome.trim() || formDescricao.trim() || formTag.trim(),
+        descricao: formDescricao.trim() || undefined,
+        codigo_equipamento: formCodigoEquip.trim() || undefined,
+        codigo_mis: formCodigoMis.trim() || undefined,
+        familia_codigo: formFamiliaCodigo.trim() || undefined,
+        familia_descricao: formFamiliaDescricao.trim() || undefined,
+        sensores: formSensores,
+        responsavel: formResponsavel.trim() || undefined,
+        setor: formSetor.trim() || formFamiliaDescricao.trim() || 'Geral',
         tipo: formTipo,
         status: formStatus,
         criticidade: formCriticidade,
@@ -158,27 +202,60 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-[#2A9D8F] text-white hover:bg-[#238276] rounded-lg transition-colors shadow-sm cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Novo Equipamento</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {onOpenImport && (
+            <button
+              onClick={onOpenImport}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-[#1E3A5F] text-white hover:bg-[#16304F] rounded-lg transition-colors shadow-sm cursor-pointer"
+            >
+              <Layers className="w-4 h-4 text-[#2A9D8F]" />
+              <span>Importar planilha (XLSX)</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-[#2A9D8F] text-white hover:bg-[#238276] rounded-lg transition-colors shadow-sm cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Novo Equipamento</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Row */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex flex-col md:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex flex-col md:flex-row gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por TAG (ex.: BOM-0101), nome, setor ou fabricante..."
+            placeholder="Buscar por TAG, Descrição MIS, Cód. Equipamento, Família ou Responsável..."
             className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#1E3A5F] focus:bg-white"
           />
         </div>
+
+        <select
+          value={criticidadeFilter}
+          onChange={(e) => setCriticidadeFilter(e.target.value)}
+          className="text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:border-[#1E3A5F]"
+        >
+          <option value="todos">Todas Criticidades</option>
+          <option value="A">Criticidade A</option>
+          <option value="B">Criticidade B</option>
+          <option value="C">Criticidade C</option>
+        </select>
+
+        <select
+          value={sensoresFilter}
+          onChange={(e) => setSensoresFilter(e.target.value)}
+          className="text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:border-[#1E3A5F]"
+        >
+          <option value="todos">Sensores (Todos)</option>
+          <option value="sim">Com Sensores (Sim)</option>
+          <option value="nao">Sem Sensores (Não)</option>
+        </select>
 
         <select
           value={statusFilter}
@@ -191,20 +268,6 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
           <option value="Em Manutenção">Em Manutenção</option>
           <option value="Parado">Parado</option>
         </select>
-
-        <select
-          value={tipoFilter}
-          onChange={(e) => setTipoFilter(e.target.value)}
-          className="text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:border-[#1E3A5F]"
-        >
-          <option value="todos">Todos os Tipos</option>
-          <option value="Mecânico">Mecânico</option>
-          <option value="Elétrico">Elétrico</option>
-          <option value="Hidráulico">Hidráulico</option>
-          <option value="Pneumático">Pneumático</option>
-          <option value="Instrumentação">Instrumentação</option>
-          <option value="Automação">Automação</option>
-        </select>
       </div>
 
       {/* Equipment Table */}
@@ -213,11 +276,11 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
           <table className="w-full text-left text-xs">
             <thead className="bg-[#0D1B2A] text-white uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="px-4 py-3 font-semibold">TAG / Nome do Ativo</th>
-                <th className="px-4 py-3 font-semibold">Setor / Área</th>
-                <th className="px-4 py-3 font-semibold">Tipo & Criticidade</th>
-                <th className="px-4 py-3 font-semibold">Fabricante / Modelo</th>
-                <th className="px-4 py-3 font-semibold">Status Operacional</th>
+                <th className="px-4 py-3 font-semibold">TAG / Descrição do MIS</th>
+                <th className="px-4 py-3 font-semibold">Códigos & Família</th>
+                <th className="px-4 py-3 font-semibold">Criticidade & Sensores</th>
+                <th className="px-4 py-3 font-semibold">Responsável / Setor</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold text-right">Ações</th>
               </tr>
             </thead>
@@ -234,9 +297,11 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
                     <td className="px-4 py-3">
                       <div className="font-mono font-bold text-[#1E3A5F] text-[11px] flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-[#2A9D8F]" />
-                        {eq.tag}
+                        <span>{eq.tag}</span>
                       </div>
-                      <div className="font-semibold text-gray-800 mt-0.5">{eq.nome}</div>
+                      <div className="font-semibold text-gray-900 mt-0.5">
+                        {eq.descricao || eq.nome || eq.tag}
+                      </div>
                       {eq.observacoes && (
                         <div className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
                           {eq.observacoes}
@@ -245,27 +310,57 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
                     </td>
 
                     <td className="px-4 py-3">
-                      <span className="font-medium text-gray-700">{eq.setor}</span>
+                      <div className="text-gray-800">
+                        {eq.codigo_equipamento && (
+                          <span className="font-mono font-semibold text-xs block text-slate-800">
+                            Equip: {eq.codigo_equipamento}
+                          </span>
+                        )}
+                        {eq.codigo_mis && (
+                          <span className="font-mono text-[11px] text-slate-600 block">
+                            MIS: {eq.codigo_mis}
+                          </span>
+                        )}
+                        <span className="text-[11px] text-slate-500 block">
+                          {eq.familia_descricao || eq.familia_codigo ? (
+                            <>Família: {eq.familia_descricao || eq.familia_codigo}</>
+                          ) : (
+                            eq.tipo || 'Geral'
+                          )}
+                        </span>
+                      </div>
                     </td>
 
                     <td className="px-4 py-3">
-                      <span className="font-semibold text-gray-800 block">{eq.tipo}</span>
-                      <span
-                        className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold mt-0.5 ${
-                          eq.criticidade === 'A'
-                            ? 'bg-red-100 text-red-700'
-                            : eq.criticidade === 'B'
-                              ? 'bg-amber-100 text-amber-700'
-                              : 'bg-blue-100 text-blue-700'
-                        }`}
-                      >
-                        Criticidade {eq.criticidade || 'A'}
+                      <div className="flex flex-col gap-1 items-start">
+                        <span
+                          className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            eq.criticidade === 'A'
+                              ? 'bg-red-100 text-red-700 border border-red-200'
+                              : eq.criticidade === 'B'
+                                ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                                : 'bg-blue-100 text-blue-700 border border-blue-200'
+                          }`}
+                        >
+                          Criticidade {eq.criticidade || 'C'}
+                        </span>
+
+                        {eq.sensores ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Com Sensores
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-gray-400">Sem sensores</span>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span className="font-medium text-gray-800 block">
+                        {eq.responsavel || '—'}
                       </span>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span className="text-gray-800 block">{eq.fabricante || '—'}</span>
-                      <span className="text-[11px] text-gray-500">{eq.modelo || '—'}</span>
+                      <span className="text-[11px] text-gray-500">{eq.setor || 'Geral'}</span>
                     </td>
 
                     <td className="px-4 py-3">
@@ -376,15 +471,90 @@ export default function EquipamentosManager({ equipamentos, onRefresh }: Equipam
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-700">Nome do Equipamento *</label>
+                <label className="text-xs font-semibold text-gray-700">
+                  Descrição do MIS / Nome
+                </label>
                 <input
                   type="text"
-                  required
-                  placeholder="ex.: Bomba Centrífuga de Alimentação"
-                  value={formNome}
-                  onChange={(e) => setFormNome(e.target.value)}
+                  placeholder="ex.: COMPORTA SISTEMA DE PALHA / MOTOR BOMBEAMENTO"
+                  value={formDescricao}
+                  onChange={(e) => {
+                    setFormDescricao(e.target.value)
+                    if (!formNome) setFormNome(e.target.value)
+                  }}
                   className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#1E3A5F]"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-700">Cód. Equipamento</label>
+                  <input
+                    type="text"
+                    placeholder="ex.: MEL0441"
+                    value={formCodigoEquip}
+                    onChange={(e) => setFormCodigoEquip(e.target.value)}
+                    className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg font-mono uppercase"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-700">Código do MIS</label>
+                  <input
+                    type="text"
+                    placeholder="ex.: CP02"
+                    value={formCodigoMis}
+                    onChange={(e) => setFormCodigoMis(e.target.value)}
+                    className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg font-mono uppercase"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-700">Cód. Família</label>
+                  <input
+                    type="text"
+                    placeholder="ex.: CP"
+                    value={formFamiliaCodigo}
+                    onChange={(e) => setFormFamiliaCodigo(e.target.value)}
+                    className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg font-mono uppercase"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-700">Descrição Família</label>
+                  <input
+                    type="text"
+                    placeholder="ex.: COMPORTAS"
+                    value={formFamiliaDescricao}
+                    onChange={(e) => setFormFamiliaDescricao(e.target.value)}
+                    className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-700">Responsável</label>
+                  <input
+                    type="text"
+                    placeholder="ex.: David, André"
+                    value={formResponsavel}
+                    onChange={(e) => setFormResponsavel(e.target.value)}
+                    className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg"
+                  />
+                </div>
+
+                <div className="space-y-1 flex items-center pt-5">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={formSensores}
+                      onChange={(e) => setFormSensores(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#2A9D8F] focus:ring-[#2A9D8F]"
+                    />
+                    <span>Equipamento possui Sensores Preditivos</span>
+                  </label>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
