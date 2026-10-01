@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Mail,
   Lock,
@@ -11,10 +12,14 @@ import {
   ArrowLeft,
   Activity,
   Send,
+  ArrowRight,
 } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Index() {
+  const navigate = useNavigate()
+  const { isAuthenticated, refreshUser } = useAuth()
   // Form fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -43,6 +48,13 @@ export default function Index() {
   const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking')
 
   const shakeTimeoutRef = useRef<number | null>(null)
+
+  // If already authenticated, redirect to /painel
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/painel')
+    }
+  }, [isAuthenticated, navigate])
 
   // Check stored Remember Me on mount
   useEffect(() => {
@@ -169,7 +181,12 @@ export default function Index() {
       setIsSuccess(true)
       const record = authData.record as { name?: string; email?: string } | undefined
       setUserName(record?.name || record?.email || 'Operador')
+      await refreshUser()
       setIsLoading(false)
+      // Redirect to panel after brief success feedback
+      setTimeout(() => {
+        navigate('/painel')
+      }, 900)
     } catch {
       setIsLoading(false)
       setAuthError('Credenciais inválidas. Verifique seu e-mail e senha.')
@@ -309,7 +326,15 @@ export default function Index() {
                   Sessão operacional iniciada com sucesso.
                 </p>
               </div>
-              <div className="pt-2">
+              <div className="pt-2 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/painel')}
+                  className="w-full h-10 rounded-lg bg-[#1E3A5F] hover:bg-[#16304F] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                >
+                  <span>Acessar Painel Agora</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -317,9 +342,9 @@ export default function Index() {
                     setPassword('')
                     setHasAttemptedSubmit(false)
                   }}
-                  className="text-xs text-[#1E3A5F] hover:underline font-medium"
+                  className="text-xs text-[#1E3A5F] hover:underline font-medium block mx-auto"
                 >
-                  Encerrar sessão de demonstração
+                  Permanecer no login
                 </button>
               </div>
             </div>
