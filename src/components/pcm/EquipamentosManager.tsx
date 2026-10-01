@@ -476,7 +476,7 @@ export default function EquipamentosManager({
                 </label>
                 <input
                   type="text"
-                  placeholder="ex.: COMPORTA SISTEMA DE PALHA / MOTOR BOMBEAMENTO"
+                  placeholder="ex.: Motor Acionamento / Redutor / Bomba"
                   value={formDescricao}
                   onChange={(e) => {
                     setFormDescricao(e.target.value)
@@ -491,7 +491,7 @@ export default function EquipamentosManager({
                   <label className="text-xs font-semibold text-gray-700">Cód. Equipamento</label>
                   <input
                     type="text"
-                    placeholder="ex.: MEL0441"
+                    placeholder="ex.: EQ-01"
                     value={formCodigoEquip}
                     onChange={(e) => setFormCodigoEquip(e.target.value)}
                     className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg font-mono uppercase"
@@ -502,7 +502,7 @@ export default function EquipamentosManager({
                   <label className="text-xs font-semibold text-gray-700">Código do MIS</label>
                   <input
                     type="text"
-                    placeholder="ex.: CP02"
+                    placeholder="ex.: MC-01"
                     value={formCodigoMis}
                     onChange={(e) => setFormCodigoMis(e.target.value)}
                     className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg font-mono uppercase"
@@ -513,7 +513,7 @@ export default function EquipamentosManager({
                   <label className="text-xs font-semibold text-gray-700">Cód. Família</label>
                   <input
                     type="text"
-                    placeholder="ex.: CP"
+                    placeholder="ex.: MT"
                     value={formFamiliaCodigo}
                     onChange={(e) => setFormFamiliaCodigo(e.target.value)}
                     className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg font-mono uppercase"
@@ -524,7 +524,7 @@ export default function EquipamentosManager({
                   <label className="text-xs font-semibold text-gray-700">Descrição Família</label>
                   <input
                     type="text"
-                    placeholder="ex.: COMPORTAS"
+                    placeholder="ex.: Motores Elétricos"
                     value={formFamiliaDescricao}
                     onChange={(e) => setFormFamiliaDescricao(e.target.value)}
                     className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg"
@@ -537,7 +537,7 @@ export default function EquipamentosManager({
                   <label className="text-xs font-semibold text-gray-700">Responsável</label>
                   <input
                     type="text"
-                    placeholder="ex.: David, André"
+                    placeholder="ex.: Nome do Responsável"
                     value={formResponsavel}
                     onChange={(e) => setFormResponsavel(e.target.value)}
                     className="w-full text-xs p-2 bg-gray-50 border border-gray-200 rounded-lg"

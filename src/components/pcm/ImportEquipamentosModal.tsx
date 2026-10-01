@@ -221,11 +221,8 @@ export default function ImportEquipamentosModal({
                   Clique para selecionar a planilha (.xlsx, .xls ou .csv)
                 </p>
                 <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
-                  Compatível com a planilha do usuário (ex.:{' '}
-                  <code className="bg-gray-200 px-1 py-0.5 rounded text-gray-800">
-                    completo-94ab1.xlsx
-                  </code>
-                  , aba &quot;Base Montagem&quot;).
+                  Compatível com planilhas de equipamentos e montagem industrial (ex.: aba
+                  &quot;Base Montagem&quot; ou primeira aba).
                 </p>
                 <p className="text-[11px] text-gray-400 mt-3">
                   Colunas mapeadas: TAG, Descrição do MIS, Código Equipamento, Código do MIS, Código
